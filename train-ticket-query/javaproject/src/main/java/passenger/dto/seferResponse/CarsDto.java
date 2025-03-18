@@ -2,9 +2,11 @@ package passenger.dto.seferResponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.Data;
 
 import java.util.List;
 
+@Data
 public class CarsDto {
     @JsonProperty("id")
     private int id;

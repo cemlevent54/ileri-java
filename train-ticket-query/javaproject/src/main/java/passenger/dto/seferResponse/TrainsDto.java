@@ -1,12 +1,14 @@
 package passenger.dto.seferResponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import org.springframework.cglib.core.Local;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Data
 public class TrainsDto {
     @JsonProperty("id")
     private int id;

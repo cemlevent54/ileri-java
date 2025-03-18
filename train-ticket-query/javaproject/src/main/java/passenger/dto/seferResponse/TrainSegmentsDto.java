@@ -1,9 +1,11 @@
 package passenger.dto.seferResponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
+@Data
 public class TrainSegmentsDto {
     @JsonProperty("departureStationId")
     private int departureStationId;

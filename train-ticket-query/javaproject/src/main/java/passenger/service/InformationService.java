@@ -45,7 +45,7 @@ public class InformationService {
                     .retrieve()
                     .toEntity(String.class);
 
-            log.info("API Response: {}", rawResponse.getBody());
+//            log.info("API Response: {}", rawResponse.getBody());
 
             if (rawResponse.getBody() == null || rawResponse.getBody().isBlank()) {
                 throw new RuntimeException("API'den geçerli bir JSON yanıtı alınamadı.");
