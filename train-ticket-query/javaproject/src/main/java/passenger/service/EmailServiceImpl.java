@@ -1,5 +1,7 @@
 package passenger.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailException;
@@ -7,18 +9,19 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import passenger.dto.seferResponse.Sefer;
+import passenger.service.interfaces.EmailService;
+import org.springframework.mail.javamail.JavaMailSender;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class EmailService {
+public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
 
+    @Override
     public void sendTrainScheduleEmail(List<Sefer> seferListesi, String from, String to) {
         try {
             // 📨 E-posta gönderim başlıyor
@@ -51,7 +54,8 @@ public class EmailService {
         }
     }
 
-    private String formatTrainSchedules(List<Sefer> seferListesi) {
+    @Override
+    public String formatTrainSchedules(List<Sefer> seferListesi) {
         StringBuilder emailBody = new StringBuilder();
 
         emailBody.append("<h2>🚆 Uygun Tren Seferleri</h2>");
@@ -73,7 +77,8 @@ public class EmailService {
         return emailBody.toString();
     }
 
-    private String escapeHtml(String input) {
+    @Override
+    public String escapeHtml(String input) {
         if (input == null) return "";
         return input.replace("&", "&amp;")
                 .replace("<", "&lt;")
@@ -81,4 +86,5 @@ public class EmailService {
                 .replace("\"", "&quot;")
                 .replace("'", "&#39;");
     }
+
 }

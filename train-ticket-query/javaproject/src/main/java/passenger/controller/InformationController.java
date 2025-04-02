@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import passenger.service.InformationService;
+import passenger.service.interfaces.InformationService;
 
 @RestController
 @RequestMapping("/api/infos")
@@ -16,11 +16,7 @@ public class InformationController {
     @Operation(summary = "Station Pair getir", description = "TCDD API'den tren seferlerini getirir.")
     @GetMapping(value = "/station-pairs", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getTrains() {
-        try {
-            return infoService.getStationPairs();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        return infoService.getStationPairs();
     }
 
     @Operation(summary = "Parametreli Station Pair getir", description = "TCDD API'den tren seferlerini getirir.")
