@@ -3,6 +3,7 @@ package passenger.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ public class InformationServiceImpl implements InformationService {
     @Value("${TCDD_AUTH_TOKEN}")
     private String authToken;
 
-    public InformationServiceImpl(RestClient restClient, ObjectMapper objectMapper) {
+    public InformationServiceImpl(@Qualifier("tcddCdnRestClient") RestClient restClient, ObjectMapper objectMapper) {
         this.restClient = restClient;
         this.objectMapper = objectMapper;
     }
@@ -39,10 +40,7 @@ public class InformationServiceImpl implements InformationService {
     public ResponseEntity<String> getStationPairs() {
         try {
             ResponseEntity<String> rawResponse = restClient.get()
-                    .uri(URL)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
-                    .header("Unit-Id", "3895")
-                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                    .uri("/datas/station-pairs-INTERNET.json?environment=dev&userId=1")
                     .retrieve()
                     .toEntity(String.class);
 

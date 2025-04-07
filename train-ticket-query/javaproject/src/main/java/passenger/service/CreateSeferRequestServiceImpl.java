@@ -2,6 +2,7 @@ package passenger.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -25,7 +26,7 @@ public class CreateSeferRequestServiceImpl implements CreateSeferRequestService 
 
     private final InformationService informationService;
 
-    public CreateSeferRequestServiceImpl(RestClient restClient, ObjectMapper objectMapper, InformationService informationService) {
+    public CreateSeferRequestServiceImpl(@Qualifier("tcddRestClient") RestClient restClient, ObjectMapper objectMapper, InformationService informationService) {
         this.restClient = restClient;
         this.objectMapper = objectMapper;
         this.informationService = informationService;

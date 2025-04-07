@@ -3,6 +3,7 @@ package passenger.service;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -33,7 +34,7 @@ import java.util.List;
 @Slf4j
 public class PassengerServiceImpl implements PassengerService {
 
-    private final RestClient restClient;
+    private final RestClient tcddRestClient;
     private final ObjectMapper objectMapper;
     private final InformationService informationService;
     private final CreateSeferRequestService createSeferRequestService;
@@ -41,15 +42,14 @@ public class PassengerServiceImpl implements PassengerService {
     private final EmailService emailService;
 
 
-    private static final String API_URL = "https://web-api-prod-ytp.tcddtasimacilik.gov.tr/tms/train/train-availability?environment=dev&userId=1";
-
-    @Value("${TCDD_AUTH_TOKEN}")
-    private String AUTH_TOKEN;
 
 
-    public PassengerServiceImpl(RestClient restClient, ObjectMapper objectMapper, InformationService informationService,
-                            CreateSeferRequestService createSeferRequestService, TimeConverter timeConverter, EmailService emailService) {
-        this.restClient = restClient;
+
+
+
+    public PassengerServiceImpl(@Qualifier("tcddRestClient") RestClient tcddRestClient, ObjectMapper objectMapper, InformationService informationService,
+                                CreateSeferRequestService createSeferRequestService, TimeConverter timeConverter, EmailService emailService) {
+        this.tcddRestClient = tcddRestClient;
         this.objectMapper = objectMapper;
         this.informationService = informationService;
         this.createSeferRequestService = createSeferRequestService;
@@ -61,17 +61,13 @@ public class PassengerServiceImpl implements PassengerService {
     public ResponseEntity<SeferResponseDto> getTrains(SeferRequestDto seferRequestDto) {
         try {
             log.info("Sefer Request: {}", seferRequestDto);
-            ResponseEntity<String> rawResponse = restClient.post()
-                    .uri(API_URL)
-                    .header(HttpHeaders.AUTHORIZATION,AUTH_TOKEN)
-                    .header("Unit-Id","3895")
-                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                    .contentType(MediaType.APPLICATION_JSON)
+            ResponseEntity<String> rawResponse = tcddRestClient.post()
+                    .uri("/tms/train/train-availability?environment=dev&userId=1")
                     .body(seferRequestDto)
                     .retrieve()
                     .toEntity(String.class);
 
-            // log.info("API Response: {}", rawResponse.getBody());
+
 
             if (rawResponse.getBody() == null || rawResponse.getBody().isBlank()) {
                 throw new RuntimeException("API'den geçerli bir JSON yanıtı alınamadı.");
