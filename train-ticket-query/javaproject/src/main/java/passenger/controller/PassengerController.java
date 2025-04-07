@@ -2,6 +2,7 @@ package passenger.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,8 @@ public class PassengerController {
             @RequestParam String gidisTarihSon,
             @RequestParam String binisIstasyonu,
             @RequestParam String inisIstasyonu,
-            @RequestParam String koltukTipi) {
+            @RequestParam String koltukTipi,
+            @RequestParam(defaultValue = "false") boolean sendEmail) {
 
         LocalDateTime start = DateTimeParser.parse(gidisTarih);
         LocalDateTime end = DateTimeParser.parse(gidisTarihSon);
@@ -44,6 +46,30 @@ public class PassengerController {
             return ResponseEntity.badRequest().body(null);
         }
 
-        return passengerService.getTrain(start, end, binisIstasyonu, inisIstasyonu, koltukTipi);
+        return passengerService.getTrain(start, end, binisIstasyonu, inisIstasyonu, koltukTipi, sendEmail);
     }
+
+    @Operation(summary = "Uygun Tren Seferlerini Getir (Sayfalı)", description = "TCDD API'den uygun tren seferlerini sayfa destekli olarak getirir.")
+    @PostMapping(value = "/getTrainWithPaging", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Page<Sefer>> getTrainWithPaging(
+            @RequestParam String gidisTarih,
+            @RequestParam String gidisTarihSon,
+            @RequestParam String binisIstasyonu,
+            @RequestParam String inisIstasyonu,
+            @RequestParam String koltukTipi,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        LocalDateTime start = DateTimeParser.parse(gidisTarih);
+        LocalDateTime end = DateTimeParser.parse(gidisTarihSon);
+
+        if (binisIstasyonu == null || binisIstasyonu.isEmpty() ||
+                inisIstasyonu == null || inisIstasyonu.isEmpty()) {
+            return ResponseEntity.badRequest().body(Page.empty());
+        }
+
+        return passengerService.getTrainWithPaging(start, end, binisIstasyonu, inisIstasyonu, koltukTipi, page, size);
+    }
+
+
 }

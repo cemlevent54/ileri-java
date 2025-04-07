@@ -1,10 +1,12 @@
 package passenger.service;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +20,13 @@ import passenger.service.interfaces.InformationService;
 import passenger.service.interfaces.PassengerService;
 import passenger.service.interfaces.CreateSeferRequestService;
 import passenger.service.interfaces.EmailService;
+// add for that -> JsonMappingException
+
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -89,7 +95,8 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public ResponseEntity<List<Sefer>> getTrain(LocalDateTime gidisTarih, LocalDateTime gidisTarihSon,
-                                                String binisIstasyonu, String inisIstasyonu, String koltukTipi) {
+                                                String binisIstasyonu, String inisIstasyonu, String koltukTipi
+            , boolean sendEmail) {
         try {
             // 1️⃣ İstasyon ID'lerini al
             ResponseEntity<String> binisResponse = informationService.getStationIdByStationName(binisIstasyonu);
@@ -147,12 +154,18 @@ public class PassengerServiceImpl implements PassengerService {
                                     segment.getDepartureStationId(), segment.getArrivalStationId(), segment.getDepartureTime());
 
                             if (segment.getDepartureStationId() == binisIstasyonuId) {
-                                kalkisTarihi = segment.getDepartureTime();
+                                kalkisTarihi = segment.getDepartureTime()
+                                        .atZone(ZoneId.of("UTC"))
+                                        .withZoneSameInstant(ZoneId.of("Europe/Istanbul"))
+                                        .toLocalDateTime();
                             }
                             if (segment.getArrivalStationId() == inisIstasyonuId && kalkisTarihi != null) {
-                                varisTarihi = segment.getDepartureTime();
+                                varisTarihi = segment.getDepartureTime()
+                                        .atZone(ZoneId.of("UTC"))
+                                        .withZoneSameInstant(ZoneId.of("Europe/Istanbul"))
+                                        .toLocalDateTime();
                                 isTrainValid = true;
-                                break; // 🚀 Eğer biniş ve iniş istasyonları eşleşiyorsa, döngüyü kır
+                                break;
                             }
                         }
 
@@ -202,8 +215,9 @@ public class PassengerServiceImpl implements PassengerService {
                 log.warn("⚠️ Uygun tren bulunamadı: {} -> {}", binisIstasyonuId, inisIstasyonuId);
             } else {
                 log.info("✅ {} adet uygun tren bulundu.", seferListesi.size());
-                emailService.sendTrainScheduleEmail(seferListesi, "cemlevent54@gmail.com", "cemlevent54@gmail.com");
-
+                if (sendEmail) {
+                    emailService.sendTrainScheduleEmail(seferListesi, "cemlevent54@gmail.com", "cemlevent54@gmail.com");
+                }
             }
 
             return ResponseEntity.ok(seferListesi);
@@ -212,6 +226,33 @@ public class PassengerServiceImpl implements PassengerService {
             log.error("❌ TCDD API isteği başarısız: {}", e.getMessage());
             throw new RuntimeException("TCDD API isteği başarısız: " + e.getMessage());
         }
+    }
+
+    @Override
+    public ResponseEntity<Page<Sefer>> getTrainWithPaging(LocalDateTime gidisTarih, LocalDateTime gidisTarihSon,
+                                                          String binisIstasyonu, String inisIstasyonu,
+                                                          String koltukTipi, int page, int size) {
+
+        ResponseEntity<List<Sefer>> fullResponse = getTrain(gidisTarih, gidisTarihSon, binisIstasyonu, inisIstasyonu, koltukTipi, false);
+        List<Sefer> fullList = fullResponse.getBody();
+
+        if (fullList == null || fullList.isEmpty()) {
+            return ResponseEntity.ok(Page.empty());
+        }
+
+        int start = (int) PageRequest.of(page, size).getOffset();
+
+        // ✅ start değeri liste boyutundan büyükse boş Page döndür
+        if (start >= fullList.size()) {
+            return ResponseEntity.ok(Page.empty());
+        }
+
+        int end = Math.min(start + size, fullList.size());
+        List<Sefer> pagedList = fullList.subList(start, end);
+
+        Page<Sefer> pagedResult = new PageImpl<>(pagedList, PageRequest.of(page, size), fullList.size());
+
+        return ResponseEntity.ok(pagedResult);
     }
 
 }
