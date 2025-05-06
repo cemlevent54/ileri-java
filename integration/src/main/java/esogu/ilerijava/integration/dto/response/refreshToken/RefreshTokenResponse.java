@@ -19,5 +19,5 @@ public class RefreshTokenResponse {
     private String message;
 
     @Schema(description = "Status of the response", example = "success")
-    private boolean status;
+    private String status;
 }

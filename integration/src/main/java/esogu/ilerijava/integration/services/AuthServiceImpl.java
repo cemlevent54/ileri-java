@@ -71,7 +71,37 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<RefreshTokenResponse> refreshToken(RefreshTokenRequest request) {
-        return null;
+        try {
+            String refreshToke = request.getRefreshToken();
+
+            ResponseEntity<RefreshTokenResponse> rawResponse = integrationRestClient.post()
+                    .uri("/IntegrationKullanici/RefreshToken")
+                    .body(request)
+                    .retrieve()
+                    .toEntity(RefreshTokenResponse.class);
+
+            log.info("API URL: {}", restClientConfig.getBaseUrl() + "/IntegrationKullanici/RefreshToken");
+
+            if (rawResponse.getBody() != null) {
+                RefreshTokenResponse response = rawResponse.getBody();
+
+                if (rawResponse.getStatusCode().is2xxSuccessful() && Boolean.TRUE.equals(response.getStatus())) {
+                    log.info("Refresh token BAŞARILI: {}", refreshToke);
+                    return ResponseEntity.ok(response);
+                } else {
+                    log.warn("Refresh token BAŞARISIZ: {} | Mesaj: {}", refreshToke, response.getMessage());
+                    return ResponseEntity.status(rawResponse.getStatusCode()).body(response);
+                }
+            }
+            else {
+                throw new RuntimeException("API'den gecerli bir JSON yanit alinamadi.");
+            }
+
+
+        } catch(Exception ex) {
+            log.error("Refresh token failed: {}", ex.getMessage());
+            throw new RuntimeException("Refresh token işlemi sırasında bir hata oluştu: " + ex.getMessage());
+        }
     }
 
 }

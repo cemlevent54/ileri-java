@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/quiz5  # Veritabanı URL'si
+    username: postgres  # Veritabanı kullanıcı adı
+    password: postgres  # Veritabanı şifresi
+    driver-class-name: org.postgresql.Driver  # PostgreSQL driver'ı
+    dialect: org.hibernate.dialect.PostgreSQLDialect  # Hibernate için doğru dialekti seçin
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # Geliştirme için 'update' kullanabilirsiniz
+    show-sql: true  # SQL sorgularını konsolda görmek için
+
+  flyway:
+    enabled: true  # Flyway'ı etkinleştir
+    locations: classpath:db/migration  # Flyway scriptlerinin bulunduğu dizin
+    baseline-on-migrate: true  # Veritabanı ilk defa başlatıldığında sıfırlanacaksa kullanılır
+
+  security:
+    user:
+      name: dummy  # Varsayılan kullanıcı adı
+      password: dummy  # Varsayılan şifre
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration  # Güvenlik yapılandırmasını devre dışı bırakmak için
